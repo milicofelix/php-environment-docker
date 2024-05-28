@@ -10,7 +10,8 @@ ARG REDIS_LIB_VERSION=5.3.7
 
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends \
-    apt-utils
+    apt-utils \
+    vim
 ### apt-utils é um extensão de recursos do gerenciador de pacotes APT
 
 RUN apt-get install -y --no-install-recommends supervisor

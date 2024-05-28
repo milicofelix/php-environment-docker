@@ -39,7 +39,7 @@ services:
   # aplicação Redis
   redis:
     image: redis:7-alpine
-    container_name: setup-redis
+    container_name: setup-redis-spedtax
     restart: always
     networks:
       - net_spedtax
