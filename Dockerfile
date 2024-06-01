@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     libxml2-dev
 
-RUN docker-php-ext-install mysqli pdo pdo_mysql pdo_pgsql pgsql session xml 
+RUN docker-php-ext-install pdo pdo_pgsql pgsql session xml 
 
 # habilita instalação do Redis
 RUN pecl install redis-${REDIS_LIB_VERSION} \
@@ -41,7 +41,6 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 RUN docker-php-ext-install zip iconv simplexml pcntl gd fileinfo
 
-#COPY php.ini-production /usr/local/etc/php/php.ini
 RUN cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
 
 WORKDIR $APP_DIR
@@ -54,8 +53,6 @@ RUN apt install nginx -y
 
 # carragar configuração padrão do NGINX
 COPY ./docker/nginx/nginx.conf /etc/nginx/nginx.conf
-# se for necessário criar os sites disponíveis já na confecção da imagem, então descomente a linha abaixo
-# COPY ./docker/nginx/sites /etc/nginx/sites-available
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
