@@ -30,6 +30,7 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev
 
 RUN docker-php-ext-install pdo pdo_pgsql pgsql session xml 
+RUN docker-php-ext-install soap && docker-php-ext-enable soap
 
 # habilita instalação do Redis
 RUN pecl install redis-${REDIS_LIB_VERSION} \

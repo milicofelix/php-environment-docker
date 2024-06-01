@@ -1,3 +1,5 @@
 .postgresql_data
 applications/
 minio/
+.DS_Store
+docker/.DS_Store
