@@ -1,0 +1,137 @@
+version: "3.9"
+services:
+  web:
+    container_name: setup-php-spedtax
+    restart: always
+    build: 
+      context: .
+      dockerfile: ./Dockerfile
+    networks:
+      - net_spedtax
+    volumes:
+      - ./applications:/var/www
+      - ./docker/nginx/sites:/etc/nginx/sites-available
+    ports:
+      - "80:80" #http
+      - "443:443" #https
+      - "8080:8080"
+      - "8081:8081"
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:15.5-alpine
+    container_name: setup-postgres-spedtax
+    restart: always
+    networks:
+      - net_spedtax
+    volumes:
+      - ./.postgresql_data:/var/lib/postgresql/data
+      - ./.backups:/var/lib/postgresql/backups
+    environment:
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: spedtax
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - 5432:5432
+
+  redis:
+    image: redis:latest
+    container_name: setup-redis-spedtax
+    restart: always
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./docker/redis/node1/cluster-config.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - net_spedtax
+    ports:
+      - '6379:6379'
+    depends_on:
+      - cluster-2
+      - cluster-3
+      - cluster-4
+      - cluster-5
+      - cluster-6
+
+  cluster-2:
+    image: redis:latest
+    container_name: setup-cluster-2-spedtax
+    restart: always
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./docker/redis/node2/cluster-config.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - net_spedtax
+    ports:
+      - '6380:6380'
+
+  cluster-3:
+    image: redis:latest
+    container_name: setup-cluster-3-spedtax
+    restart: always
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./docker/redis/node3/cluster-config.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - net_spedtax
+    ports:
+      - '6381:6381'
+
+  cluster-4:
+    image: redis:latest
+    container_name: setup-cluster-4-spedtax
+    restart: always
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./docker/redis/node4/cluster-config.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - net_spedtax
+    ports:
+      - '6382:6382'
+
+  cluster-5:
+    image: redis:latest
+    container_name: setup-cluster-5-spedtax
+    restart: always
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./docker/redis/node5/cluster-config.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - net_spedtax
+    ports:
+      - '6383:6383'
+
+  cluster-6:
+    image: redis:latest
+    container_name: setup-cluster-6-spedtax
+    restart: always
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./docker/redis/node6/cluster-config.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - net_spedtax
+    ports:
+      - '6384:6384'
+
+  minio:
+    image: minio/minio
+    container_name: setup-minio-spedtax
+    restart: always
+    networks:
+      - net_spedtax
+    ports:
+      - 9000:9000
+      - 9001:9001
+      - 34477:34477
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    volumes:
+      - ./minio/data:/data
+      - ./minio/config:/root/.minio
+    command: server --address ":9000" --console-address ":9001" /data
+
+networks:
+  net_spedtax:
+    driver: bridge

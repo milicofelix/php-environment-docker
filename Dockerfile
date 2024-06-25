@@ -8,10 +8,8 @@ ARG APP_DIR=/var/www
 ## Versão da Lib do Redis para PHP
 ARG REDIS_LIB_VERSION=5.3.7
 
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends \
-    apt-utils \
-    vim
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    apt-utils 
 ### apt-utils é um extensão de recursos do gerenciador de pacotes APT
 
 RUN apt-get install -y --no-install-recommends supervisor
@@ -29,8 +27,7 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     libxml2-dev
 
-RUN docker-php-ext-install pdo pdo_pgsql pgsql session xml 
-RUN docker-php-ext-install soap && docker-php-ext-enable soap
+RUN docker-php-ext-install pdo pdo_pgsql pgsql session xml soap && docker-php-ext-enable soap
 
 # habilita instalação do Redis
 RUN pecl install redis-${REDIS_LIB_VERSION} \
