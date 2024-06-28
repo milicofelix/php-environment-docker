@@ -27,8 +27,8 @@ services:
     networks:
       - net_spedtax
     volumes:
-      - ./.postgresql_data:/var/lib/postgresql/data
-      - ./.backups:/var/lib/postgresql/backups
+      - ./docker/postgres/.postgresql_data:/var/lib/postgresql/data
+      - ./docker/postgres/.backups:/var/lib/postgresql/backups
     environment:
       POSTGRES_PASSWORD: root
       POSTGRES_DB: spedtax
@@ -47,12 +47,6 @@ services:
       - net_spedtax
     ports:
       - '6379:6379'
-    depends_on:
-      - cluster-2
-      - cluster-3
-      - cluster-4
-      - cluster-5
-      - cluster-6
 
   cluster-2:
     image: redis:latest
@@ -65,6 +59,8 @@ services:
       - net_spedtax
     ports:
       - '6380:6380'
+    depends_on:
+      - redis
 
   cluster-3:
     image: redis:latest
@@ -77,6 +73,8 @@ services:
       - net_spedtax
     ports:
       - '6381:6381'
+    depends_on:
+      - cluster-2
 
   cluster-4:
     image: redis:latest
@@ -89,6 +87,8 @@ services:
       - net_spedtax
     ports:
       - '6382:6382'
+    depends_on:
+      - cluster-3
 
   cluster-5:
     image: redis:latest
@@ -101,6 +101,8 @@ services:
       - net_spedtax
     ports:
       - '6383:6383'
+    depends_on:
+      - cluster-4
 
   cluster-6:
     image: redis:latest
@@ -113,6 +115,8 @@ services:
       - net_spedtax
     ports:
       - '6384:6384'
+    depends_on:
+      - cluster-5
 
   minio:
     image: minio/minio
@@ -128,8 +132,8 @@ services:
       MINIO_ACCESS_KEY: minio
       MINIO_SECRET_KEY: minio123
     volumes:
-      - ./minio/data:/data
-      - ./minio/config:/root/.minio
+      - ./docker/minio/data:/data
+      - ./docker/minio/config:/root/.minio
     command: server --address ":9000" --console-address ":9001" /data
 
 networks:
