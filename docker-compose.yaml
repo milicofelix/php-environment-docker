@@ -1,4 +1,5 @@
 version: "3.9"
+
 services:
   web:
     container_name: setup-php-spedtax
@@ -19,6 +20,11 @@ services:
     depends_on:
       - postgres
       - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   postgres:
     image: postgres:15.5-alpine
@@ -30,23 +36,34 @@ services:
       - ./docker/postgres/.postgresql_data:/var/lib/postgresql/data
       - ./docker/postgres/.backups:/var/lib/postgresql/backups
     environment:
-      POSTGRES_PASSWORD: root
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-root}
       POSTGRES_DB: spedtax
       POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   redis:
     image: redis:latest
     container_name: setup-redis-spedtax
     restart: always
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    command: ["sh", "-c", "redis-server /usr/local/etc/redis/redis.conf & sleep 10 && /docker-entrypoint-initdb.d/init.sh"]
     volumes:
       - ./docker/redis/node1/cluster-config.conf:/usr/local/etc/redis/redis.conf
+      - ./init.sh:/docker-entrypoint-initdb.d/init.sh
     networks:
       - net_spedtax
     ports:
-      - '6379:6379'
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   cluster-2:
     image: redis:latest
@@ -58,9 +75,14 @@ services:
     networks:
       - net_spedtax
     ports:
-      - '6380:6380'
+      - "6380:6380"
     depends_on:
       - redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6380", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   cluster-3:
     image: redis:latest
@@ -72,9 +94,14 @@ services:
     networks:
       - net_spedtax
     ports:
-      - '6381:6381'
+      - "6381:6381"
     depends_on:
       - cluster-2
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6381", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   cluster-4:
     image: redis:latest
@@ -86,9 +113,14 @@ services:
     networks:
       - net_spedtax
     ports:
-      - '6382:6382'
+      - "6382:6382"
     depends_on:
       - cluster-3
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6382", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   cluster-5:
     image: redis:latest
@@ -100,9 +132,14 @@ services:
     networks:
       - net_spedtax
     ports:
-      - '6383:6383'
+      - "6383:6383"
     depends_on:
       - cluster-4
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6383", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   cluster-6:
     image: redis:latest
@@ -114,9 +151,14 @@ services:
     networks:
       - net_spedtax
     ports:
-      - '6384:6384'
+      - "6384:6384"
     depends_on:
       - cluster-5
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6384", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   minio:
     image: minio/minio
@@ -125,16 +167,21 @@ services:
     networks:
       - net_spedtax
     ports:
-      - 9000:9000
-      - 9001:9001
-      - 34477:34477
+      - "9000:9000"
+      - "9001:9001"
+      - "34477:34477"
     environment:
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio123
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minio}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minio123}
     volumes:
       - ./docker/minio/data:/data
       - ./docker/minio/config:/root/.minio
     command: server --address ":9000" --console-address ":9001" /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   net_spedtax:
